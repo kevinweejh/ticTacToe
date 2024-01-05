@@ -220,9 +220,13 @@ const gameController = (function () {
         activePlayer = players[0];
     }
 
+    const restartGame = () => {
+        gameEnding();
+    }
+
     printWhoseTurn(); // Initial instructions
 
-    return { getActivePlayer, makeMove };
+    return { getActivePlayer, makeMove, restartGame };
 })();
 
 
