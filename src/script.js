@@ -16,112 +16,74 @@ const gameboard = (() => {
 })();
 
 // Module for controlling game logic
-const gameController = (function () {
-    const initialisePlayers = () => {
-        let playerOneName = prompt("Insert Player 1's Name");
-        let playerTwoName = prompt("Insert Player 2's Name");
-        
-        const players = [
-            {
-                name: playerOneName,
-                token: 1
-            }, 
-            {
-                name: playerTwoName,
-                token: 2
-            }, 
-        ]; 
+const gameController = (() => {
+    const initializePlayers = () => [
+        { name: prompt("Insert Player 1's Name"), token: 'X'},
+        { name: prompt("Insert Player 2's Name"), token: 'O'},
+    ];
 
-        return players;
-    }
+    let players = initializePlayers();
+    let currentPlayer = players[0];
 
-    let players = initialisePlayers();
-    let activePlayer = players[0];
-
-    const switchPlayerTurn = () => {
-        activePlayer = activePlayer === players[0] ? players[1] : players[0];
+    const switchPlayer = () => {
+        currentPlayer = currentPlayer === players[0] ? players[1] : players[0];
     };
 
-    const getActivePlayer = () => activePlayer;
-
-    const printWhoseTurn = () => {
-        console.log(`${getActivePlayer().name}'s turn.`)
-    }
-
-    const placeMark = (position, token) => {
+    const placeMark = (position) => {
         const board = gameboard.getBoard();
-        if (!board[position]) {
-            board[position] = token;
-            return { success: true };
+        if (board[position] === null) {
+            board[position] = currentPlayer.token;
+            return true;
         } 
         console.warn(`Position ${position} is already taken, please choose another one.`);
-        return { success: false };
-    }
-
-    const makeMove = (position) => {
-
-        console.log(`${getActivePlayer().name} is playing ${getActivePlayer().token} in position ${position}`);
-        const validMove = placeMark(position, getActivePlayer().token);
-
-        const gameState = checkWinCondition(); 
-        console.log('gameState:', gameState);
-
-        if (gameState.over) {
-            console.log(`Game End. ${gameState.winningToken} is the winningToken.`);
-            gameEnding();
-        } else {
-            if (validMove.success) {
-                switchPlayerTurn();
-                printWhoseTurn();
-                gameboard.printBoard();
-            } else {
-                printWhoseTurn();
-                gameboard.printBoard();
-            }
-        }
+        return false;
     }
 
     const checkWinCondition = () => {
-        const boardArray = gameboard.getBoard();
-        const winConditionsArray = [
-            [0, 1, 2],
-            [3, 4, 5],
-            [6, 7, 8],
-            [0, 3, 6],
-            [1, 4, 7],
-            [2, 5 ,8],
-            [0, 4, 8],
-            [2, 4, 6]
-        ]
+        const board = gameboard.getBoard();
+        const winConditions = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8],
+            [0, 3, 6], [1, 4, 7], [2, 5 ,8],
+            [0, 4, 8], [2, 4, 6]
+        ];
 
-        for (let trio of winConditionsArray) {
-            let winningToken;
-            winningToken = (boardArray[trio[0]] == boardArray[trio[1]]) && (boardArray[trio[0]] == boardArray[trio[2]]) ? boardArray[trio[0]] : null;
-            
-            if (winningToken) {
-                return { over: true, winningToken };
-            } 
+        for (const [a, b, c] of winConditions) {
+            if ((board[a] === board[b]) && (board[a] === board[c])) {
+                return board[a];
+            }
         }
-
-        return { over: false };
+            
+        return null;
     }
 
-    const gameEnding = () => {
-        const boardArray = gameboard.getBoard();
+    const makeMove = (position) => {
+        console.log(`${currentPlayer.name} (${currentPlayer.token}) is playing at position ${position}`);
         
-        // Reset board and prompt for new player names
-        boardArray.fill(0);
-        players = initialisePlayers();
-        activePlayer = players[0];
+        if (placeMark(position)) {
+            const winner = checkWinCondition();
+            if (winner) {
+                console.log(`Game Over. ${winner} wins!`);
+                resetGame();
+            } else {
+                switchPlayer();
+                console.log(`${currentPlayer.name}'s turn.`);
+                gameboard.printBoard();
+            }
+        }
+    };
+
+    const resetGame = () => {
+        gameboard.getBoard().fill(null);
+        players = initializePlayers();
+        currentPlayer = players[0];
+        console.log(`${currentPlayer.name}'s turn.`);
     }
 
-    const restartGame = () => {
-        gameEnding();
-    }
+    // Initial game start
+    console.log(`${currentPlayer.name}'s turn.`);
+    gameboard.printBoard();
 
-    printWhoseTurn(); // Initial instructions
-
-    return { getActivePlayer, makeMove, restartGame };
+    return { makeMove, resetGame };
 })();
 
 
