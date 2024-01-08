@@ -16,8 +16,8 @@ const gameboard = (() => {
 })();
 
 // Module for initializing players
-const initializePlayers = (callback) => {
-    const dialog = document.querySelector("dialog");
+const initializePlayers = () => {
+    const dialog = document.querySelector("#playerInput");
 
     dialog.show();
 
@@ -29,23 +29,26 @@ const initializePlayers = (callback) => {
         ];
         document.getElementById('playerOneName').innerText = players[0].name;
         document.getElementById('playerTwoName').innerText = players[1].name;
+
         dialog.close();
 
-        callback(players);
+        return { players };
     });
 }
 
 // Module for controlling game logic
-const gameController = () => {
+const gameController = (players) => {
 
-    let players, currentPlayer;
+    // let players, currentPlayer;
 
-    initializePlayers((initializedPlayers) => {
-        players = initializedPlayers;
-        currentPlayer = players[0];
-        console.log(`${currentPlayer.name}'s turn.`);
-        gameboard.printBoard();
-    })
+    // initializePlayers((initializedPlayers) => {
+    //     players = initializedPlayers;
+    //     currentPlayer = players[0];
+    //     console.log(`${currentPlayer.name}'s turn.`);
+    //     gameboard.printBoard();
+    // })
+    // console.log(players);
+    let currentPlayer = players[0];
 
     const switchPlayer = () => {
         currentPlayer = currentPlayer === players[0] ? players[1] : players[0];
@@ -81,11 +84,30 @@ const gameController = () => {
 
     const makeMove = (position) => {
         console.log(`${currentPlayer.name} (${currentPlayer.token}) is playing at position ${position}`);
+        const dialog = document.querySelector("#gameEnd")
+
+        // const startCountdown = (duration, display) => {
+
+        //     dialog.show()
+        //     let timer = duration, seconds;
+        //     const interval = setInterval(() => {
+        //         seconds = parseInt(timer, 10);
+
+        //         display.innerText = seconds;
+
+        //         if (--timer < 0) {
+        //             clearInterval(interval);
+        //             display.innerText = "0";
+        //             dialog.close();
+        //         }
+        //     }, 1000);
+        // }
         
         if (placeMark(position)) {
             const winner = checkWinCondition();
             if (winner) {
                 console.log(`Game Over. ${winner} wins!`);
+                // startCountdown(5, dialog);
                 setTimeout(resetGame, 5000);
             } else {
                 switchPlayer();
@@ -149,4 +171,4 @@ const displayController = () => {
     return { updateScreen }
 }
 
-const game = gameController();
+// const game = gameController();
