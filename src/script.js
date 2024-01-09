@@ -15,130 +15,11 @@ const gameboard = (() => {
     };
 })();
 
-// Module for controlling game logic
-const gameController = (() => {
-
-    const dialog = document.getElementById('welcomeDialog');
-
-    let players, currentPlayer; 
-    // Module for initializing players
-    const initializePlayers = () => {
-        players = [
-            { name: prompt("Insert Player 1's name:"), token: 'X' }, 
-            { name: prompt("Insert Player 2's name:"), token: 'O' }
-        ]
-
-        document.getElementById('playerOneName').innerText = players[0].name;
-        document.getElementById('playerTwoName').innerText = players[1].name;
-
-        return players;
-    };
-
-    dialog.addEventListener('submit', () => {
-        players = initializePlayers();
-        currentPlayer = players[0];
-    })
-
-    const switchPlayer = () => {
-        currentPlayer = currentPlayer === players[0] ? players[1] : players[0];
-    };
-
-    
-
-    const placeMark = (position) => {
-        const board = gameboard.getBoard();
-
-        if (board[position] === null) {
-            board[position] = currentPlayer.token;
-            displayController().updateScreen();
-            return true;
-        } 
-        console.warn(`Position ${position} is already taken, please choose another one.`);
-        return false;
-    }
-
-    const checkWinCondition = () => {
-        const board = gameboard.getBoard();
-        const winConditions = [
-            [0, 1, 2], [3, 4, 5], [6, 7, 8],
-            [0, 3, 6], [1, 4, 7], [2, 5 ,8],
-            [0, 4, 8], [2, 4, 6]
-        ];
-
-        for (const [a, b, c] of winConditions) {
-            if ((board[a] === board[b]) && (board[a] === board[c])) {
-                return board[a];
-            }
-        }
-            
-        return null;
-    }
-
-    const btnList = document.querySelectorAll('[data-pos]');
-    console.log('btnList:', btnList);
-
-    for (let btn of btnList) {
-        btn.addEventListener("click", () => {
-            makeMove(btn.dataset.pos);
-        })
-    }
-
-    const makeMove = (position) => {
-        console.log(`${currentPlayer.name} (${currentPlayer.token}) is playing at position ${position}`);
-        const dialog = document.querySelector("#gameEnd")
-
-        // const startCountdown = (duration, display) => {
-
-        //     dialog.show()
-        //     let timer = duration, seconds;
-        //     const interval = setInterval(() => {
-        //         seconds = parseInt(timer, 10);
-
-        //         display.innerText = seconds;
-
-        //         if (--timer < 0) {
-        //             clearInterval(interval);
-        //             display.innerText = "0";
-        //             dialog.close();
-        //         }
-        //     }, 1000);
-        // }
-        
-        if (placeMark(position)) {
-            const winner = checkWinCondition();
-            if (winner) {
-                console.log(`Game Over. ${winner} wins!`);
-                // startCountdown(5, dialog);
-                setTimeout(resetGame, 5000);
-            } else {
-                switchPlayer();
-                console.log(`${currentPlayer.name}'s turn.`);
-                gameboard.printBoard();
-            }
-        }
-    };
-
-    const resetGame = () => {
-        gameboard.getBoard().fill(null);
-        displayController().updateScreen();
-        players = initializePlayers();
-        currentPlayer = players[0];
-        console.log(`${currentPlayer.name}'s turn.`);
-    }
-
-    // Initial game start
-    // console.log(`${currentPlayer.name}'s turn.`);
-    gameboard.printBoard();
-
-    return { makeMove, resetGame };
-})();
-
 // Module for displaying DOM elements
 const displayController = () => {
     const board = gameboard.getBoard();
 
     const btnList = document.querySelectorAll('[data-pos]');
-    // console.log('btnList:', btnList);
 
     const createImgElement = (src) => {
         const img = document.createElement("img");
@@ -165,6 +46,105 @@ const displayController = () => {
             pos++;
         }
     }
-
     return { updateScreen }
 }
+
+// Module for controlling game logic
+const gameController = (() => {
+    let players, currentPlayer; 
+    const initializePlayers = () => {
+        players = [
+            { name: prompt("Insert Player 1's name:"), token: 'X' }, 
+            { name: prompt("Insert Player 2's name:"), token: 'O' }
+        ]
+
+        document.getElementById('playerOneName').innerText = players[0].name;
+        document.getElementById('playerTwoName').innerText = players[1].name;
+
+        return players;
+    };
+
+    const dialog = document.getElementById('welcomeDialog');
+    dialog.addEventListener('submit', () => {
+        players = initializePlayers();
+        currentPlayer = players[0];
+        updateWhoseTurn();
+    })
+
+    const switchPlayer = () => {
+        currentPlayer = currentPlayer === players[0] ? players[1] : players[0];
+        updateWhoseTurn();
+    };
+
+    const display = displayController();
+    const placeMark = (position) => {
+        const board = gameboard.getBoard();
+
+        if (board[position] === null) {
+            board[position] = currentPlayer.token;
+            display.updateScreen();
+            return true;
+        } 
+        console.warn(`Position ${position} is already taken, please choose another one.`);
+        return false;
+    }
+
+    const checkWinCondition = () => {
+        const board = gameboard.getBoard();
+        const winConditions = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8],
+            [0, 3, 6], [1, 4, 7], [2, 5 ,8],
+            [0, 4, 8], [2, 4, 6]
+        ];
+
+        for (const [a, b, c] of winConditions) {
+            if ((board[a] === board[b]) && (board[a] === board[c]) && board[a]) {
+                return board[a];
+            }
+        }
+        return null;
+    }
+
+    const btnList = document.querySelectorAll('[data-pos]');
+
+    for (let btn of btnList) {
+        btn.addEventListener("click", () => {
+            makeMove(btn.dataset.pos);
+        })
+    }
+
+    const makeMove = (position) => {
+        console.log(`${currentPlayer.name} (${currentPlayer.token}) is playing at position ${position}`);
+        
+        if (placeMark(position)) {
+            const winner = checkWinCondition();
+            
+            if (winner) {
+                console.log(`Game Over. ${winner} wins!`);
+                const dialog = document.querySelector("#gameEnd")
+                dialog.show();
+                setTimeout(() => dialog.close(), 3000);
+                setTimeout(resetGame, 3000);
+            } else {
+                switchPlayer();
+                gameboard.printBoard();
+            }
+        }
+    };
+
+    const resetGame = () => {
+        gameboard.getBoard().fill(null);
+        display.updateScreen();
+        players = initializePlayers();
+        currentPlayer = players[0];
+        updateWhoseTurn();
+    }
+
+    const updateWhoseTurn = () => {
+        const instruction = document.getElementById('whoseTurn');
+        instruction.innerText = `${currentPlayer.name}'s turn.`;
+        console.log(`${currentPlayer.name}'s turn.`);
+    }
+
+    return { makeMove, resetGame, updateWhoseTurn };
+})();
