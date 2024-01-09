@@ -15,47 +15,39 @@ const gameboard = (() => {
     };
 })();
 
-// Module for initializing players
-const initializePlayers = () => {
-    const dialog = document.querySelector("#playerInput");
+// Module for controlling game logic
+const gameController = (() => {
 
-    dialog.show();
+    const dialog = document.getElementById('welcomeDialog');
 
-    dialog.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const players = [
-            { name: document.getElementById('nameInput1').value, token: 'X' },
-            { name: document.getElementById('nameInput2').value, token: 'O' }
-        ];
+    let players, currentPlayer; 
+    // Module for initializing players
+    const initializePlayers = () => {
+        players = [
+            { name: prompt("Insert Player 1's name:"), token: 'X' }, 
+            { name: prompt("Insert Player 2's name:"), token: 'O' }
+        ]
+
         document.getElementById('playerOneName').innerText = players[0].name;
         document.getElementById('playerTwoName').innerText = players[1].name;
 
-        dialog.close();
+        return players;
+    };
 
-        return { players };
-    });
-}
-
-// Module for controlling game logic
-const gameController = (players) => {
-
-    // let players, currentPlayer;
-
-    // initializePlayers((initializedPlayers) => {
-    //     players = initializedPlayers;
-    //     currentPlayer = players[0];
-    //     console.log(`${currentPlayer.name}'s turn.`);
-    //     gameboard.printBoard();
-    // })
-    // console.log(players);
-    let currentPlayer = players[0];
+    dialog.addEventListener('submit', () => {
+        players = initializePlayers();
+        currentPlayer = players[0];
+    })
 
     const switchPlayer = () => {
         currentPlayer = currentPlayer === players[0] ? players[1] : players[0];
     };
 
+    
+
     const placeMark = (position) => {
         const board = gameboard.getBoard();
+
         if (board[position] === null) {
             board[position] = currentPlayer.token;
             displayController().updateScreen();
@@ -80,6 +72,15 @@ const gameController = (players) => {
         }
             
         return null;
+    }
+
+    const btnList = document.querySelectorAll('[data-pos]');
+    console.log('btnList:', btnList);
+
+    for (let btn of btnList) {
+        btn.addEventListener("click", () => {
+            makeMove(btn.dataset.pos);
+        })
     }
 
     const makeMove = (position) => {
@@ -119,13 +120,10 @@ const gameController = (players) => {
 
     const resetGame = () => {
         gameboard.getBoard().fill(null);
-        initializePlayers((initializedPlayers) => {
-            players = initializedPlayers;
-            currentPlayer = players[0];
-            console.log(`${currentPlayer.name}'s turn.`);
-            gameboard.printBoard();
-            displayController().updateScreen();
-        })
+        displayController().updateScreen();
+        players = initializePlayers();
+        currentPlayer = players[0];
+        console.log(`${currentPlayer.name}'s turn.`);
     }
 
     // Initial game start
@@ -133,14 +131,14 @@ const gameController = (players) => {
     gameboard.printBoard();
 
     return { makeMove, resetGame };
-};
+})();
 
 // Module for displaying DOM elements
 const displayController = () => {
     const board = gameboard.getBoard();
-    
+
     const btnList = document.querySelectorAll('[data-pos]');
-    console.log('btnList:', btnList);
+    // console.log('btnList:', btnList);
 
     const createImgElement = (src) => {
         const img = document.createElement("img");
@@ -170,5 +168,3 @@ const displayController = () => {
 
     return { updateScreen }
 }
-
-// const game = gameController();
