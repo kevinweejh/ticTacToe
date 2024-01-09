@@ -98,8 +98,13 @@ const gameController = (() => {
         ];
 
         for (const [a, b, c] of winConditions) {
+            const getNameFromToken = (players, token) => {
+                const winner = players.find((player) => player.token === token);
+                return winner ? winner.name : null;
+            }
+
             if ((board[a] === board[b]) && (board[a] === board[c]) && board[a]) {
-                return board[a];
+                return getNameFromToken(players, board[a]);
             }
         }
         return null;
@@ -121,6 +126,8 @@ const gameController = (() => {
             
             if (winner) {
                 console.log(`Game Over. ${winner} wins!`);
+                const winnerDisplay = document.getElementById('winnerDisplay');
+                winnerDisplay.innerText = `Game Over. ${winner} wins!`;
                 const dialog = document.querySelector("#gameEnd")
                 dialog.show();
                 setTimeout(() => dialog.close(), 3000);
